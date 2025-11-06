@@ -1,0 +1,63 @@
+#  1)import the libraries
+
+import pandas as pd                       # For data handling
+from sklearn.model_selection import train_test_split   # For splitting dataset
+from sklearn.svm import SVC                            # For SVM model
+from sklearn.neighbors import KNeighborsClassifier     # For KNN model
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+
+
+
+
+# Step 2: Load Dataset and Check Data
+# Load dataset
+df = pd.read_csv("emails.csv")
+
+# View first few rows
+print(df.head())
+
+# Check for missing values
+print(df.isnull().sum())
+
+
+# Step 3: Define Features and Target Variables
+
+# Features (X): all columns except the last one
+X = df.iloc[:, 1:3001]    # word frequency columns
+
+# Target (Y): the last column ("Prediction")
+Y = df.iloc[:, -1].values
+
+
+# Step 4: Split Dataset into Training and Testing Sets
+X_train, X_test, y_train, y_test = train_test_split(
+    X, Y, test_size=0.25, random_state=42
+)
+# step-4 :build Support Vector Model
+
+# Build and train the SVM model
+svc = SVC(C=1.0, kernel='rbf', gamma='auto')
+svc.fit(X_train, y_train)
+
+# Make predictions
+svc_pred = svc.predict(X_test)
+
+print("SVM Accuracy:", accuracy_score(y_test, svc_pred))
+print("SVM Classification Report:\n", classification_report(y_test, svc_pred))
+print("SVM Confusion Matrix:\n", confusion_matrix(y_test, svc_pred))
+
+
+
+#step-5 :K-Nearest Neighbors (KNN) Model
+
+# Build and train KNN model
+knn = KNeighborsClassifier(n_neighbors=7)
+knn.fit(X_train, y_train)
+
+# Make predictions
+knn_pred = knn.predict(X_test)
+
+print("KNN Accuracy:", accuracy_score(y_test, y_pred))
+print("KNN Classification Report:\n", classification_report(y_test, knn_pred))
+print("KNN Confusion Matrix:\n", confusion_matrix(y_test, knn_pred))
+

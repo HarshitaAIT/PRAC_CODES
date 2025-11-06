@@ -1,0 +1,57 @@
+# 1️⃣ Import Libraries
+import numpy as np
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler, LabelEncoder
+from sklearn.metrics import confusion_matrix, accuracy_score
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense
+
+
+# 2️⃣ Load Dataset
+data = pd.read_csv("Churn_Modelling.csv")
+
+
+# 3️⃣ Separate Features (X) and Target (y)
+X = data.iloc[:, 3:13]   # columns from CreditScore to EstimatedSalary
+y = data.iloc[:, 13]     # target column "Exited" (1 = left, 0 = stayed)
+
+
+# 4️⃣ Convert Categorical Data into Numbers
+le_gender = LabelEncoder()
+X['Gender'] = le_gender.fit_transform(X['Gender'])  # Male=1, Female=0
+X = pd.get_dummies(X, drop_first=True)  # convert Geography column into dummy variables
+
+
+# 5️⃣ Split into Train/Test sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+
+# 6️⃣ Normalize (Scale) data
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+
+
+# 7️⃣ Build Neural Network
+model = Sequential()
+model.add(Dense(6, input_dim=11, activation='relu'))   # hidden layer 1
+model.add(Dense(6, activation='relu'))                 # hidden layer 2
+model.add(Dense(1, activation='sigmoid'))              # output layer (binary classification)
+
+
+# 8️⃣ Compile Model
+model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+
+
+# 9️⃣ Train Model
+model.fit(X_train, y_train, epochs=50, batch_size=10, verbose=0)
+
+
+# 🔟 Predict and Evaluate
+y_pred = (model.predict(X_test) > 0.5)  # convert probabilities to 0/1
+cm = confusion_matrix(y_test, y_pred)
+accuracy = accuracy_score(y_test, y_pred)
+
+print("Confusion Matrix:\n", cm)
+print("Accuracy Score:", accuracy)

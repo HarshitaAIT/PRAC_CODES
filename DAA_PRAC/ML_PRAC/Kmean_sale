@@ -1,0 +1,40 @@
+# 1️⃣ Import libraries
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.preprocessing import StandardScaler
+from sklearn.cluster import KMeans
+
+# 2️⃣ Load dataset
+df = pd.read_csv('sales_data_sample.csv', encoding='unicode_escape')
+
+# 3️⃣ Select relevant numeric columns for clustering
+data = df[['QUANTITYORDERED', 'PRICEEACH', 'SALES', 'MSRP']]
+
+# 4️⃣ Handle missing values if any
+data = data.dropna()
+
+# 5️⃣ Normalize the data (so all features are on same scale)
+scaler = StandardScaler()
+data_scaled = scaler.fit_transform(data)
+
+# 6️⃣ Elbow Method – find the best number of clusters (k)
+sse = []  # Sum of Squared Errors
+for k in range(1, 11):
+    kmeans = KMeans(n_clusters=k, random_state=0)
+    kmeans.fit(data_scaled)
+    sse.append(kmeans.inertia_)
+
+# 7️⃣ Plot the Elbow Curve
+plt.plot(range(1, 11), sse, marker='o')
+plt.title('Elbow Method for Optimal k')
+plt.xlabel('Number of clusters (k)')
+plt.ylabel('SSE')
+plt.show()
+
+# 8️⃣ Choose k (say 4 from the elbow) and fit KMeans
+kmeans = KMeans(n_clusters=4, random_state=0)
+df['Cluster'] = kmeans.fit_predict(data_scaled)
+
+# 9️⃣ View sample results
+print(df[['CUSTOMERNAME', 'SALES', 'Cluster']].head())

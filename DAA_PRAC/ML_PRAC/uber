@@ -1,0 +1,97 @@
+# 1)PREPROCESS THE DATA
+
+# 1. Import necessary libraries
+import pandas as pd               # For data handling (tables)
+import numpy as np                # For numerical operations
+import matplotlib.pyplot as plt   # For data visualization
+
+# 2. Load the Uber dataset
+data = pd.read_csv("uber.csv")
+
+# 3. Create a copy so the original data remains safe
+df = data.copy()
+
+# 4. Convert pickup_datetime to a datetime format
+df["pickup_datetime"] = pd.to_datetime(df["pickup_datetime"])
+
+# 5. Drop missing values (rows with null data)
+df.dropna(inplace=True)
+
+# 6. Remove unnecessary columns
+df.drop(["Unnamed: 0", "key"], axis=1, inplace=True)
+
+# Check the cleaned data
+print(df.head())
+print(df.info())
+
+# 2)OUTLIERS
+
+# Visualize fare amount to see outliers
+plt.boxplot(df["fare_amount"])
+
+plt.title("Boxplot for Fare Amount")
+plt.show()
+
+# Remove outliers using 1st and 99th percentiles
+q_low = df["fare_amount"].quantile(0.01)
+q_hi = df["fare_amount"].quantile(0.99)
+
+df = df[(df["fare_amount"] > q_low) & (df["fare_amount"] < q_hi)]
+
+
+
+# 3) CORRELATION
+
+# Get correlation matrix
+corr = df.corr()
+
+# Print only fare correlations
+print(corr["fare_amount"].sort_values(ascending=False))
+
+
+
+# 4)Implement the ML model
+
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.ensemble import RandomForestRegressor
+
+# Convert datetime to numeric (machine learning can only work with numbers)
+df["pickup_datetime"] = pd.to_numeric(df["pickup_datetime"])
+
+# Separate features (X) and target (y)
+X = df.drop("fare_amount", axis=1)  # predictors
+y = df["fare_amount"]               # target variable (fare)
+
+# Split the data: 80% training, 20% testing
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# 1. Linear Regression model
+lr = LinearRegression()
+lr.fit(X_train, y_train)          # Train the model
+y_pred_lr = lr.predict(X_test)    # Predict fares
+
+# 2. Random Forest model
+rf = RandomForestRegressor(n_estimators=100, random_state=42)
+rf.fit(X_train, y_train)
+y_pred_rf = rf.predict(X_test)
+
+# 5) Compare the model  and calculate the R^2 and RMSE 
+
+from sklearn.metrics import mean_squared_error, r2_score
+
+# Linear Regression metrics
+lr_rmse = np.sqrt(mean_squared_error(y_test, y_pred_lr))
+lr_r2 = r2_score(y_test, y_pred_lr)
+
+# Random Forest metrics
+rf_rmse = np.sqrt(mean_squared_error(y_test, y_pred_rf))
+rf_r2 = r2_score(y_test, y_pred_rf)
+
+# Print comparison
+print("Linear Regression → RMSE:", lr_rmse, "R²:", lr_r2)
+print("Random Forest → RMSE:", rf_rmse, "R²:", rf_r2)
+
+
+
+
