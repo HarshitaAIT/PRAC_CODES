@@ -1,0 +1,28 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+contract SimpleBank {
+// Mapping to store balances for each account (address)
+mapping(address => uint) private balances;
+// Event logs for deposit and withdrawal operations
+event Deposit(address indexed account, uint amount);
+event Withdraw(address indexed account, uint amount);
+// Deposit function to add money to the user's account
+function deposit() public payable {
+require(msg.value > 0, "You must deposit some money.");
+balances[msg.sender] += msg.value;
+// Emit the deposit event
+emit Deposit(msg.sender, msg.value);
+}
+// Withdraw function to withdraw money from the user's account
+function withdraw(uint amount) public {
+require(amount <= balances[msg.sender], "Insufficient balance.");
+payable(msg.sender).transfer(amount); // Transfer the amount to the user's address
+balances[msg.sender] -= amount;
+// Emit the withdraw event
+emit Withdraw(msg.sender, amount);
+}
+// Function to check the balance of the user's account
+function checkBalance() public view returns (uint) {
+return balances[msg.sender];
+}
+}
